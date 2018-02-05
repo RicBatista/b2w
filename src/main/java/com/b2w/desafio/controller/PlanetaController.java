@@ -99,6 +99,48 @@ public class PlanetaController {
 
     }
 
+    /**
+     * Endpoint para listar os planetas cadastrados
+     *
+     * @return HttpEntity<PlanetaResponseBody> planeta
+     */
+    @RequestMapping(path = "/planetas", method = RequestMethod.GET)
+    public HttpEntity<PlanetaResponseBody> findAll() {
+
+        PlanetaResponseBody responseBody = new PlanetaResponseBody();
+
+        try {
+
+            List<Planeta> planetas = planetaService.findAll();
+
+            if (!planetas.isEmpty()) {
+
+                responseBody.setPlanetas(planetas);
+
+                log.info("Busca de planetas com exito");
+
+                return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+
+            } else {
+
+                responseBody.setDescription("Nenhum planeta encontrado");
+
+                log.error("Nenhum planeta encontrado");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+            }
+
+        } catch (Exception e) {
+            String errorCode = String.valueOf(System.nanoTime());
+
+            responseBody.setDescription("Houve um erro interno no servidor ao listar os planetas cadastrados");
+
+            log.error("Erro ao listar os planetas cadastrados: {} - {}", errorCode, e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+        }
+
+    }
+
     private PlanetaResponseBody buildErrorResponse(BindingResult bindingResult) {
         List<String> errors = bindingResult.getFieldErrors()
                 .stream()
