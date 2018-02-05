@@ -10,14 +10,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -83,6 +81,7 @@ public class PlanetaController {
              */
             log.error("Erro no insert: {}", e.getMessage(), e.getConstraintViolations());
 
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildErrorResponse(e));
 
         } catch (Exception e) {
@@ -90,7 +89,7 @@ public class PlanetaController {
             String errorCode = String.valueOf(System.nanoTime());
 
             PlanetaResponseBody responseBody = new PlanetaResponseBody();
-            responseBody.setDescription("Erro interno: " + errorCode);
+            responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
 
             log.error("Erro no cadastro do planeta: {} - {}", errorCode, e.getMessage(), e);
 
@@ -132,7 +131,7 @@ public class PlanetaController {
         } catch (Exception e) {
             String errorCode = String.valueOf(System.nanoTime());
 
-            responseBody.setDescription("Houve um erro interno no servidor ao listar os planetas cadastrados");
+            responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
 
             log.error("Erro ao listar os planetas cadastrados: {} - {}", errorCode, e.getMessage(), e);
 
@@ -141,10 +140,60 @@ public class PlanetaController {
 
     }
 
+    /**
+     * Endpoint para buscar um planeta pelo nome
+     *
+     * @param nome
+     *
+     * @return HttpEntity<PlanetaResponseBody>
+     */
+    @RequestMapping(path = "/planetas/", method = RequestMethod.GET)
+    public HttpEntity<PlanetaResponseBody> findByName(@RequestParam("nome") String nome) {
+
+        PlanetaResponseBody responseBody = new PlanetaResponseBody();
+
+        try {
+
+            Optional<Planeta> planetaOptional = planetaService.findByNome(nome);
+
+            if (planetaOptional.isPresent()) {
+                Planeta planeta = planetaOptional.get();
+
+                responseBody.setPlaneta(planeta);
+
+                log.info("Busca de planeta pelo nome com exito: [{}]", planeta);
+
+                return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+
+            } else {
+                responseBody.setDescription("Nenhum planeta encontrado");
+
+                log.error("Nenhum planeta encontrado pelo o nome: {}", nome);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+            }
+
+        } catch (Exception e) {
+            String errorCode = String.valueOf(System.nanoTime());
+
+            responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
+
+            log.error("Erro na exibição do Planeta solicitado com o nome: {} - {} - {}", nome, errorCode, e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+        }
+
+    }
+
     private PlanetaResponseBody buildErrorResponse(BindingResult bindingResult) {
+
         List<String> errors = bindingResult.getFieldErrors()
                 .stream()
-                .map(fieldError -> bindingResult.getFieldError(fieldError.getField()).getDefaultMessage())
+                .map(
+                        fieldError -> bindingResult.getFieldError(
+                                fieldError.getField()
+                        )
+                        .getDefaultMessage()
+                )
                 .collect(Collectors.toList());
 
         PlanetaResponseBody responseBody = new PlanetaResponseBody();

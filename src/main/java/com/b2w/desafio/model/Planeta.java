@@ -18,13 +18,13 @@ public class Planeta {
     private String id;
 
     @Indexed(unique = true)
-    @NotNull
+    @NotNull(message = "O campo nome deve ser informado")
     private String nome;
 
-    @NotNull
+    @NotNull(message = "O campo clima deve ser informado")
     private String clima;
 
-    @NotNull
+    @NotNull(message = "O campo terreno deve ser informado")
     private String terreno;
 
 }
