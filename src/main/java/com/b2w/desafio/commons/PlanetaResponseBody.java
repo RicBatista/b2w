@@ -12,6 +12,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 public class PlanetaResponseBody {
+
     private String description;
 
     private List<Planeta> planetas;

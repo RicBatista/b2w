@@ -30,7 +30,13 @@ public class PlanetaController {
     @Autowired
     private PlanetaService planetaService;
 
-    //ADICIONAR UM PLANETA (COM NOME, CLIMA E TERRENO)
+    /**
+     * Endpoint para adicionar/criar um planeta (com nome, clima e terreno)
+     *
+     * @param planetaRequest
+     *
+     * @return HttpEntity<PlanetaResponseBody>
+     */
     @RequestMapping(path = "/planetas", method = RequestMethod.POST)
     public HttpEntity<PlanetaResponseBody> create(@Valid @RequestBody PlanetaRequestBody planetaRequest,
                                                   BindingResult bindingResult) {
@@ -55,7 +61,7 @@ public class PlanetaController {
 
                 log.error("Nao e permitido criar planeta com um nome já existente.");
 
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(responseBody);
 
             } else {
 
@@ -80,6 +86,7 @@ public class PlanetaController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildErrorResponse(e));
 
         } catch (Exception e) {
+
             String errorCode = String.valueOf(System.nanoTime());
 
             PlanetaResponseBody responseBody = new PlanetaResponseBody();
