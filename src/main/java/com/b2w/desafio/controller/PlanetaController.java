@@ -262,11 +262,12 @@ public class PlanetaController {
 
                     planetaService.delete(planeta);
 
-                    responseBody.setDescription("Planeta deletado pelo id:" + id);
+                    //responseBody.setDescription("Planeta deletado pelo id:" + id);
 
                     log.info("Planeta deletado pelo id: {}", id);
 
-                    return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+                    //return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+                    return ResponseEntity.status(HttpStatus.OK).build();
 
                 } else {
                     responseBody.setDescription("Nenhum planeta encontrado");
@@ -282,6 +283,67 @@ public class PlanetaController {
                 responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
 
                 log.error("Erro ao deletar o Planeta solicitado com o ID: {} - {} - {}", id, errorCode, e.getMessage(), e);
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+            }
+
+        }
+
+    }
+
+    /**
+     * Endpoint para deletar um planeta pelo nome
+     *
+     * @param nome
+     * @return
+     */
+    @RequestMapping(path = "/planetas/", method = RequestMethod.DELETE)
+    public HttpEntity<PlanetaResponseBody> deleteByNome(@RequestParam("nome") String nome) {
+
+        PlanetaResponseBody responseBody = new PlanetaResponseBody();
+
+        if(nome.isEmpty()) {
+
+            responseBody.setDescription("nome esta nulo");
+
+            log.error("nome esta nulo");
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+
+        } else {
+
+            try {
+
+                //TODO - TESTAR BATENDO AQUI COM NOME NULO
+                Optional<Planeta> planetaOptional = planetaService.findById(nome);
+
+                if (planetaOptional.isPresent()) {
+
+                    Planeta planeta = planetaOptional.get();
+
+                    planetaService.delete(planeta);
+
+                    //responseBody.setDescription("Planeta deletado pelo id:" + id);
+
+                    log.info("Planeta deletado pelo nome: {}", nome);
+
+                    //return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+                    return ResponseEntity.status(HttpStatus.OK).build();
+
+                } else {
+                    responseBody.setDescription("Nenhum planeta encontrado");
+
+                    log.error("Nenhum planeta encontrado pelo nome: {}", nome);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+                }
+
+            } catch (Exception e) {
+
+                String errorCode = String.valueOf(System.nanoTime());
+
+                responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
+
+                log.error("Erro ao deletar o Planeta solicitado com o nome: {} - {} - {}", nome, errorCode, e.getMessage(), e);
 
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
             }

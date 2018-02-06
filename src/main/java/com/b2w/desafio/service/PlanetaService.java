@@ -82,4 +82,13 @@ public class PlanetaService {
         }
     }
 
+    /**
+     * Deleta no banco de dados o Planeta recebido por parâmetro
+     *
+     * @param planeta
+     */
+    public void delete(Planeta planeta) {
+        planetaRepository.delete(planeta);
+    }
+
 }
