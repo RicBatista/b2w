@@ -198,6 +198,7 @@ public class PlanetaController {
 
         try {
 
+            //TODO - TESTAR BATENDO AQUI COM ID NULO
             Optional<Planeta> planetaOptional = planetaService.findById(id);
 
             if (planetaOptional.isPresent()) {
@@ -225,6 +226,66 @@ public class PlanetaController {
             log.error("Erro na exibição do Planeta solicitado com o ID: {} - {} - {}", id, errorCode, e.getMessage(), e);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+        }
+
+    }
+
+    /**
+     * Endpoint para deletar um planeta pelo id
+     *
+     * @param id
+     * @return HttpEntity<PlanetaResponseBody>
+     */
+    @RequestMapping(path = "/planetas/{id}", method = RequestMethod.DELETE)
+    public HttpEntity<PlanetaResponseBody> deleteById(@PathVariable String id) {
+
+        PlanetaResponseBody responseBody = new PlanetaResponseBody();
+
+        if(id.isEmpty()) {
+
+            responseBody.setDescription("Id esta nulo");
+
+            log.error("id esta nulo");
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+
+        } else {
+
+            try {
+
+                //TODO - TESTAR BATENDO AQUI COM ID NULO
+                Optional<Planeta> planetaOptional = planetaService.findById(id);
+
+                if (planetaOptional.isPresent()) {
+
+                    Planeta planeta = planetaOptional.get();
+
+                    planetaService.delete(planeta);
+
+                    responseBody.setDescription("Planeta deletado pelo id:" + id);
+
+                    log.info("Planeta deletado pelo id: {}", id);
+
+                    return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+
+                } else {
+                    responseBody.setDescription("Nenhum planeta encontrado");
+
+                    log.error("Nenhum planeta encontrado pelo id: {}", id);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+                }
+
+            } catch (Exception e) {
+
+                String errorCode = String.valueOf(System.nanoTime());
+
+                responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
+
+                log.error("Erro ao deletar o Planeta solicitado com o ID: {} - {} - {}", id, errorCode, e.getMessage(), e);
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+            }
+
         }
 
     }
