@@ -184,6 +184,51 @@ public class PlanetaController {
 
     }
 
+    /**
+     * Endpoint para buscar um planeta pelo id
+     *
+     * @param id
+     *
+     * @return HttpEntity<PlanetaResponseBody>
+     */
+    @RequestMapping(path = "/planetas/{id}", method = RequestMethod.GET)
+    public HttpEntity<PlanetaResponseBody> findById(@PathVariable String id) {
+
+        PlanetaResponseBody responseBody = new PlanetaResponseBody();
+
+        try {
+
+            Optional<Planeta> planetaOptional = planetaService.findById(id);
+
+            if (planetaOptional.isPresent()) {
+
+                Planeta planeta = planetaOptional.get();
+
+                responseBody.setPlaneta(planeta);
+
+                log.info("Busca de planeta com exito: [{}]", planeta);
+
+                return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+
+            } else {
+                responseBody.setDescription("Nenhum planeta encontrado");
+
+                log.error("Nenhum planeta encontrado pelo id: {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+            }
+
+        } catch (Exception e) {
+            String errorCode = String.valueOf(System.nanoTime());
+
+            responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
+
+            log.error("Erro na exibição do Planeta solicitado com o ID: {} - {} - {}", id, errorCode, e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+        }
+
+    }
+
     private PlanetaResponseBody buildErrorResponse(BindingResult bindingResult) {
 
         List<String> errors = bindingResult.getFieldErrors()
