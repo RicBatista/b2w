@@ -4,6 +4,7 @@ import com.b2w.desafio.commons.PlanetaRequestBody;
 import com.b2w.desafio.commons.PlanetaResponseBody;
 import com.b2w.desafio.model.Planeta;
 import com.b2w.desafio.service.PlanetaService;
+import com.b2w.desafio.validation.SwapiValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -81,8 +82,24 @@ public class PlanetaController {
              */
             log.error("Erro no insert: {}", e.getMessage(), e.getConstraintViolations());
 
-
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildErrorResponse(e));
+
+        } catch (SwapiValidationException swapiException) {
+
+            String errorCode = String.valueOf(System.nanoTime());
+
+            PlanetaResponseBody responseBody = new PlanetaResponseBody();
+
+            if(swapiException.getHttpStatus() == HttpStatus.NOT_FOUND) {
+                responseBody.setDescription("Não é possível adicionar um planeta inexistente na API de Star Wars");
+            } else {
+                responseBody.setDescription(swapiException.getMessage());
+            }
+
+            log.error("Erro na SWAPI ao cadastrar o planeta: {} - {}",
+                    errorCode, swapiException.getMessage(), swapiException);
+
+            return ResponseEntity.status(swapiException.getHttpStatus()).body(responseBody);
 
         } catch (Exception e) {
 
@@ -302,6 +319,7 @@ public class PlanetaController {
 
         PlanetaResponseBody responseBody = new PlanetaResponseBody();
 
+        //TODO - Criar metodo de validacao para pegar se ID ou NOME estao vazios no DELETE e GET e LANCAR EXCEPTION
         if(nome.isEmpty()) {
 
             responseBody.setDescription("nome esta nulo");
@@ -352,6 +370,12 @@ public class PlanetaController {
 
     }
 
+    /**
+     * Coletamos os erros de BindingResult para setar no ResponseBody
+     *
+     * @param bindingResult
+     * @return PlanetaResponseBody
+     */
     private PlanetaResponseBody buildErrorResponse(BindingResult bindingResult) {
 
         List<String> errors = bindingResult.getFieldErrors()
@@ -369,6 +393,12 @@ public class PlanetaController {
         return responseBody;
     }
 
+    /**
+     * Coletamos os erros de ConstraintViolationException para setar no ResponseBody
+     *
+     * @param cve
+     * @return PlanetaResponseBody
+     */
     private PlanetaResponseBody buildErrorResponse(ConstraintViolationException cve) {
         List<String> errors = cve.getConstraintViolations()
                 .stream()

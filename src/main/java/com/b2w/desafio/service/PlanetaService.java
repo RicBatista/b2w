@@ -1,7 +1,9 @@
 package com.b2w.desafio.service;
 
 import com.b2w.desafio.model.Planeta;
+import com.b2w.desafio.model.SwapiPlanet;
 import com.b2w.desafio.repository.PlanetaRepository;
+import com.b2w.desafio.validation.SwapiValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,9 @@ public class PlanetaService {
 
     @Autowired
     private PlanetaRepository planetaRepository;
+
+    @Autowired
+    private SwapiPlanetService swapiPlanetService;
 
     /**
      * Busca de todos os planetas cadastrados
@@ -55,12 +60,13 @@ public class PlanetaService {
      *
      * @return Planeta planeta
      */
-    public Planeta create(Planeta planetaRequest) {
+    public Planeta create(Planeta planetaRequest) throws SwapiValidationException {
 
         Planeta planeta = new Planeta();
         planeta.setNome(planetaRequest.getNome());
         planeta.setClima(planetaRequest.getClima());
         planeta.setTerreno(planetaRequest.getTerreno());
+        planeta.setFilmesTotal(this.aparicoesEmFilmesTotal(planetaRequest.getNome()));
 
         return planetaRepository.save(planeta);
     }
@@ -90,5 +96,31 @@ public class PlanetaService {
     public void delete(Planeta planeta) {
         planetaRepository.delete(planeta);
     }
+
+    public Integer aparicoesEmFilmesTotal(String nome) throws SwapiValidationException {
+
+        Integer aparicoesEmFilmes = 0;
+
+        SwapiPlanet swapiPlanet = swapiPlanetService.getPlanetInSwapiByName(nome);
+
+        aparicoesEmFilmes = swapiPlanet.getFilms().size();
+
+        /*
+        if(swapiPlanet == null) {
+
+            throw new SwapiValidationException(
+                    HttpStatus.NOT_FOUND,
+                    "Planeta não encontrado na API de Star Wars"
+            );
+
+        } else {
+            aparicoesEmFilmes = swapiPlanet.getFilms().size();
+        }
+        */
+
+        return aparicoesEmFilmes;
+    }
+
+
 
 }

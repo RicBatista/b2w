@@ -27,4 +27,6 @@ public class Planeta {
     @NotNull(message = "O campo terreno deve ser informado")
     private String terreno;
 
+    private Integer filmesTotal;
+
 }
