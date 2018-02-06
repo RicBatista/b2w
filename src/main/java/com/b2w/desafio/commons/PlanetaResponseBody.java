@@ -2,6 +2,7 @@ package com.b2w.desafio.commons;
 
 import com.b2w.desafio.model.Planeta;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.Data;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  * Created by matto on 05/02/2018.
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(Include.NON_NULL)
 @Data
 public class PlanetaResponseBody {
 
@@ -19,9 +20,7 @@ public class PlanetaResponseBody {
 
     private Planeta planeta;
 
-    public PlanetaResponseBody() {
-
-    }
+    public PlanetaResponseBody() {}
 
     public PlanetaResponseBody(List<Planeta> planetas) {
         this.planetas = planetas;
