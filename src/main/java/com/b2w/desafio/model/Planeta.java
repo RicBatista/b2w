@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 public class Planeta {
 
     @Id
-    private String id;
+    private long id;
 
     @Indexed(unique = true)
     @NotNull(message = "O campo nome deve ser informado")

@@ -24,6 +24,9 @@ public class PlanetaService {
     @Autowired
     private SwapiPlanetService swapiPlanetService;
 
+    @Autowired
+    private CounterService CounterService;
+
     /**
      * Busca de todos os planetas cadastrados
      *
@@ -40,7 +43,11 @@ public class PlanetaService {
      * @return Optional<Planeta> planeta
      */
     public Optional<Planeta> findById(String id) {
-        return Optional.ofNullable(planetaRepository.findOne(id));
+        return Optional.ofNullable(
+                planetaRepository.findById(
+                        Long.parseLong(id)
+                )
+        );
     }
 
     /**
@@ -67,6 +74,7 @@ public class PlanetaService {
         planeta.setClima(planetaRequest.getClima());
         planeta.setTerreno(planetaRequest.getTerreno());
         planeta.setFilmesTotal(this.aparicoesEmFilmesTotal(planetaRequest.getNome()));
+        planeta.setId(CounterService.getNextSequence("Counter"));
 
         return planetaRepository.save(planeta);
     }
@@ -97,30 +105,18 @@ public class PlanetaService {
         planetaRepository.delete(planeta);
     }
 
+    /**
+     * Retorna o Total de aparicoes do planeta nos filmes
+     *
+     * @param nome
+     * @return
+     * @throws SwapiValidationException
+     */
     public Integer aparicoesEmFilmesTotal(String nome) throws SwapiValidationException {
-
-        Integer aparicoesEmFilmes = 0;
 
         SwapiPlanet swapiPlanet = swapiPlanetService.getPlanetInSwapiByName(nome);
 
-        aparicoesEmFilmes = swapiPlanet.getFilms().size();
-
-        /*
-        if(swapiPlanet == null) {
-
-            throw new SwapiValidationException(
-                    HttpStatus.NOT_FOUND,
-                    "Planeta não encontrado na API de Star Wars"
-            );
-
-        } else {
-            aparicoesEmFilmes = swapiPlanet.getFilms().size();
-        }
-        */
-
-        return aparicoesEmFilmes;
+        return swapiPlanet.getFilms().size();
     }
-
-
 
 }
