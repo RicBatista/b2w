@@ -10,6 +10,8 @@ public interface PlanetaRepository extends MongoRepository<Planeta, String> {
 
     Planeta findByNome(String nome);
 
+    Planeta findById(long id);
+
     Planeta findByIdAndNome(String id, String nome);
 
     /*
