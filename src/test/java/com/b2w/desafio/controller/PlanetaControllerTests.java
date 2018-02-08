@@ -27,9 +27,6 @@ import java.util.List;
 /**
  * Created by matto on 07/02/2018.
  */
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(classes = {SpringMongoConfiguration.class})
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = PlanetasApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
