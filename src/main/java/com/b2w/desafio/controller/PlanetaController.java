@@ -290,7 +290,6 @@ public class PlanetaController {
 
         try {
 
-            //TODO - TESTAR BATENDO AQUI COM NOME NULO
             List<Planeta> planetaList = planetaService.findAll();
 
             if (!planetaList.isEmpty()) {
