@@ -32,6 +32,10 @@ public class SwapiPlanetService {
     @Value("${swapi.resource.search}")
     private String swapiResourceSearch;
 
+    /**
+     * Retorna a URL de pesquisa de um planeta pelo nome em Star Wars API
+     * @return String
+     */
     private String getSwapiUrlResourceSearch() {
         return this.swapiBaseUrl + this.swapiResource + this.swapiResourceSearch;
     }
@@ -108,7 +112,5 @@ public class SwapiPlanetService {
         }
 
     }
-
-
 
 }

@@ -11,6 +11,8 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
 /**
+ * Criado para controlar a sequencia do ID de cada planeta como Auto Increment
+ *
  * Created by matto on 06/02/2018.
  */
 @Service

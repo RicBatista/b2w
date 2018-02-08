@@ -119,4 +119,10 @@ public class PlanetaService {
         return swapiPlanet.getFilms().size();
     }
 
+    /**
+     * Deleta TODOS os planetas no banco de dados
+     */
+    public void deleteAll() {
+        planetaRepository.deleteAll();
+    }
 }

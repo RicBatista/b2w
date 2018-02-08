@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * Entidade retirada direto da API Star Wars
+ *
  * Created by matto on 06/02/2018.
  */
 @Data

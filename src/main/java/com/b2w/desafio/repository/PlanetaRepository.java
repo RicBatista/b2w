@@ -12,11 +12,4 @@ public interface PlanetaRepository extends MongoRepository<Planeta, String> {
 
     Planeta findById(long id);
 
-    Planeta findByIdAndNome(String id, String nome);
-
-    /*
-    //Supports native JSON query string
-    @Query("{nome:'?0'}")
-    Planeta findCustomByNome(String nome);
-    */
 }

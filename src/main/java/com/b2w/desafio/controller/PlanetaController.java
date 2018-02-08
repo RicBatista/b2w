@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -70,19 +69,8 @@ public class PlanetaController {
 
                 log.info("Planeta adicionado com sucesso:  [{}]", planeta);
 
-                return ResponseEntity.status(HttpStatus.OK).body(responseBody);
-
+                return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
             }
-
-        } catch (ConstraintViolationException e) {
-            /**
-             * Alguns dados de requisicao invalidos podem nao ser processados no request devido ao nivel de aninhamento
-             * dos objetos. Entretanto, esses erros de validacao podem ser pegos em outras partes do codigo e acabam lancando
-             * ConstraintViolationException. Por isso este catch foi criado.
-             */
-            log.error("Erro no insert: {}", e.getMessage(), e.getConstraintViolations());
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildErrorResponse(e));
 
         } catch (SwapiValidationException swapiException) {
 
@@ -91,9 +79,13 @@ public class PlanetaController {
             PlanetaResponseBody responseBody = new PlanetaResponseBody();
 
             if(swapiException.getHttpStatus() == HttpStatus.NOT_FOUND) {
-                responseBody.setDescription("Não é possível adicionar um planeta inexistente na API de Star Wars");
+                responseBody.setDescription(
+                        "Não é possível adicionar um planeta inexistente na API Star Wars"
+                );
             } else {
-                responseBody.setDescription(swapiException.getMessage());
+                responseBody.setDescription(
+                        "Houve um erro na API Star Wars ao consultar a existência do planeta para cadastro"
+                );
             }
 
             log.error("Erro na SWAPI ao cadastrar o planeta: {} - {}",
@@ -112,7 +104,6 @@ public class PlanetaController {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
         }
-
     }
 
     /**
@@ -154,7 +145,6 @@ public class PlanetaController {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
         }
-
     }
 
     /**
@@ -198,7 +188,6 @@ public class PlanetaController {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
         }
-
     }
 
     /**
@@ -215,7 +204,6 @@ public class PlanetaController {
 
         try {
 
-            //TODO - TESTAR BATENDO AQUI COM ID NULO
             Optional<Planeta> planetaOptional = planetaService.findById(id);
 
             if (planetaOptional.isPresent()) {
@@ -244,7 +232,6 @@ public class PlanetaController {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
         }
-
     }
 
     /**
@@ -258,116 +245,79 @@ public class PlanetaController {
 
         PlanetaResponseBody responseBody = new PlanetaResponseBody();
 
-        if(id.isEmpty()) {
+        try {
 
-            responseBody.setDescription("Id esta nulo");
+            Optional<Planeta> planetaOptional = planetaService.findById(id);
 
-            log.error("id esta nulo");
+            if (planetaOptional.isPresent()) {
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+                Planeta planeta = planetaOptional.get();
 
-        } else {
+                planetaService.delete(planeta);
 
-            try {
+                log.info("Planeta deletado pelo id: {}", id);
 
-                //TODO - TESTAR BATENDO AQUI COM ID NULO
-                Optional<Planeta> planetaOptional = planetaService.findById(id);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
-                if (planetaOptional.isPresent()) {
+            } else {
+                responseBody.setDescription("Nenhum planeta encontrado");
 
-                    Planeta planeta = planetaOptional.get();
-
-                    planetaService.delete(planeta);
-
-                    //responseBody.setDescription("Planeta deletado pelo id:" + id);
-
-                    log.info("Planeta deletado pelo id: {}", id);
-
-                    //return ResponseEntity.status(HttpStatus.OK).body(responseBody);
-                    return ResponseEntity.status(HttpStatus.OK).build();
-
-                } else {
-                    responseBody.setDescription("Nenhum planeta encontrado");
-
-                    log.error("Nenhum planeta encontrado pelo id: {}", id);
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
-                }
-
-            } catch (Exception e) {
-
-                String errorCode = String.valueOf(System.nanoTime());
-
-                responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
-
-                log.error("Erro ao deletar o Planeta solicitado com o ID: {} - {} - {}", id, errorCode, e.getMessage(), e);
-
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+                log.error("Nenhum planeta encontrado pelo id: {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
             }
 
-        }
+        } catch (Exception e) {
 
+            String errorCode = String.valueOf(System.nanoTime());
+
+            responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
+
+            log.error("Erro ao deletar o Planeta solicitado com o ID: {} - {} - {}", id, errorCode, e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+        }
     }
 
     /**
-     * Endpoint para deletar um planeta pelo nome
+     * Endpoint para deletar todos os planetas
      *
-     * @param nome
      * @return
      */
-    @RequestMapping(path = "/planetas/", method = RequestMethod.DELETE)
-    public HttpEntity<PlanetaResponseBody> deleteByNome(@RequestParam("nome") String nome) {
+    @RequestMapping(path = "/planetas", method = RequestMethod.DELETE)
+    public HttpEntity<PlanetaResponseBody> deleteAll() {
 
         PlanetaResponseBody responseBody = new PlanetaResponseBody();
 
-        //TODO - Criar metodo de validacao para pegar se ID ou NOME estao vazios no DELETE e GET e LANCAR EXCEPTION
-        if(nome.isEmpty()) {
+        try {
 
-            responseBody.setDescription("nome esta nulo");
+            //TODO - TESTAR BATENDO AQUI COM NOME NULO
+            List<Planeta> planetaList = planetaService.findAll();
 
-            log.error("nome esta nulo");
+            if (!planetaList.isEmpty()) {
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+                planetaService.deleteAll();
 
-        } else {
+                log.info("Todos os planetas foram deletados");
 
-            try {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
-                //TODO - TESTAR BATENDO AQUI COM NOME NULO
-                Optional<Planeta> planetaOptional = planetaService.findById(nome);
+            } else {
+                responseBody.setDescription("Não existem planetas para deletar");
 
-                if (planetaOptional.isPresent()) {
-
-                    Planeta planeta = planetaOptional.get();
-
-                    planetaService.delete(planeta);
-
-                    //responseBody.setDescription("Planeta deletado pelo id:" + id);
-
-                    log.info("Planeta deletado pelo nome: {}", nome);
-
-                    //return ResponseEntity.status(HttpStatus.OK).body(responseBody);
-                    return ResponseEntity.status(HttpStatus.OK).build();
-
-                } else {
-                    responseBody.setDescription("Nenhum planeta encontrado");
-
-                    log.error("Nenhum planeta encontrado pelo nome: {}", nome);
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
-                }
-
-            } catch (Exception e) {
-
-                String errorCode = String.valueOf(System.nanoTime());
-
-                responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
-
-                log.error("Erro ao deletar o Planeta solicitado com o nome: {} - {} - {}", nome, errorCode, e.getMessage(), e);
-
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+                log.error("Não existem planetas para deletar");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
             }
 
-        }
+        } catch (Exception e) {
 
+            String errorCode = String.valueOf(System.nanoTime());
+
+            responseBody.setDescription("Houve um erro interno no servidor: " + errorCode);
+
+            log.error("Erro ao deletar todos os Planetas: {} - {}", errorCode, e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+        }
     }
 
     /**
@@ -393,21 +343,4 @@ public class PlanetaController {
         return responseBody;
     }
 
-    /**
-     * Coletamos os erros de ConstraintViolationException para setar no ResponseBody
-     *
-     * @param cve
-     * @return PlanetaResponseBody
-     */
-    private PlanetaResponseBody buildErrorResponse(ConstraintViolationException cve) {
-        List<String> errors = cve.getConstraintViolations()
-                .stream()
-                .map(v -> v.getMessageTemplate())
-                .collect(Collectors.toList());
-
-        PlanetaResponseBody responseBody = new PlanetaResponseBody();
-        responseBody.setDescription(errors.toString());
-
-        return responseBody;
-    }
 }
